@@ -6,9 +6,9 @@ import { Empresa } from './entities/empresa.entity';
 import { Cotizacion } from './entities/cotizacion.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Empresa, Cotizacion])],
-    controllers: [EmpresaController],
-    providers: [EmpresaService],
-    exports: [EmpresaService]
+  imports: [TypeOrmModule.forFeature([Empresa, Cotizacion])],
+  controllers: [EmpresaController],
+  providers: [EmpresaService],
+  exports: [EmpresaService]
 })
-export class EmpresaModule {}
+export class EmpresaModule { }

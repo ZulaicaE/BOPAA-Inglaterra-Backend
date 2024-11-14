@@ -1,10 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Empresa } from './empresa.entity';
-
-@Entity('cotizaciones')
-export class Cotizacion {
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Bolsa } from 'src/bolsa/entities/bolsa.entity';
+@Entity('indices')
+export class Indice {
   @PrimaryGeneratedColumn({
-    type: 'bigint',
+    type: 'int',
   })
   public id: number;
 
@@ -23,19 +22,19 @@ export class Cotizacion {
   public hora: string;
 
   @Column({
-    name: 'cotizacion',
+    name: 'indiceBursatil',
     type: 'decimal',
     precision: 7,
     scale: 2,
   })
-  public cotizacion: number;
+  public indiceBursatil: number;
 
-  @ManyToOne(() => Empresa)
+  @ManyToOne(() => Bolsa)
   @JoinColumn({
-    name: 'idEmpresa',
+    name: 'idBolsa',
     referencedColumnName: 'id'
   })
-  empresa: Empresa;
+  bolsa: Bolsa;
 
   constructor() { };
 }

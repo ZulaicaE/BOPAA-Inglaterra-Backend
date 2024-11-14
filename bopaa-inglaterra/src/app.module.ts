@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmpresaModule } from './empresas/empresa.module';
 import { ConfigModule } from '@nestjs/config';
+import { IndiceModule } from './indice/indice.module';
+import { BolsaModule } from './bolsa/bolsa.module';
 
 @Module({
   imports: [
@@ -19,9 +21,11 @@ import { ConfigModule } from '@nestjs/config';
       entities: ['dist/**/*.entity.js'],
       logging: 'all',
     }),
-    EmpresaModule
+    BolsaModule,
+    EmpresaModule,
+    IndiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
