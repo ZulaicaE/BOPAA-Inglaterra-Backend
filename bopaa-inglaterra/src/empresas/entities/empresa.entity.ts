@@ -11,12 +11,14 @@ export class Empresa {
   @Column({
     name: 'codigoEmpresa',
     length: 100,
+    unique: true,
   })
   public codigoEmpresa: string;
 
   @Column({
     name: 'nombreEmpresa',
     length: 100,
+    unique: true,
   })
   public nombreEmpresa: string;
 
@@ -26,15 +28,16 @@ export class Empresa {
   })
   public acciones: number;
 
-  @ManyToOne(() => Bolsa)
+  @ManyToOne(() => Bolsa, { nullable: false })
   @JoinColumn({
     name: 'idBolsa',
     referencedColumnName: 'id'
   })
   public bolsa: Bolsa;
 
-  constructor(codigoEmpresa: string, nombreEmpresa: string) {
+  constructor(codigoEmpresa: string, nombreEmpresa: string, bolsa: Bolsa) {
     this.codigoEmpresa = codigoEmpresa;
     this.nombreEmpresa = nombreEmpresa;
+    this.bolsa = bolsa;
   }
 }
