@@ -18,6 +18,7 @@ export class Indice {
     name: 'hora',
     type: 'varchar',
     precision: 5,
+    unique: true,
   })
   public hora: string;
 

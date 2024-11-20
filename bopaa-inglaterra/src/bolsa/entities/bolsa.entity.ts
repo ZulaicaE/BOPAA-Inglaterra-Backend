@@ -11,6 +11,7 @@ export class Bolsa {
   @Column({
     name: 'codigoBolsa',
     length: 100,
+    unique: true,
   })
   public codigoBolsa: string;
 

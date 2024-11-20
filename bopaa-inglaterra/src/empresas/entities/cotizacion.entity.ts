@@ -19,6 +19,7 @@ export class Cotizacion {
     name: 'hora',
     type: 'varchar',
     precision: 5,
+    unique: true,
   })
   public hora: string;
 
