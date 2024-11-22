@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { EmpresaService } from './empresa.service';
 import { Empresa } from './entities/empresa.entity';
 
@@ -17,6 +17,19 @@ export class EmpresaController {
     return await this.empresaService.getDetallesEmpresa(codigoEmpresa);
   }
 
+  @Get('/:codigoEmpresa/cotizaciones')
+  async getCotizacionesEmpresa(
+    @Param('codigoEmpresa') codigoEmpresa: string,
+    @Query('fechaDesde') fechaDesde: string,
+    @Query('fechaHasta') fechaHasta: string,
+  ): Promise<any> {
+      return await this.empresaService.getCotizacionesByFechas(
+        codigoEmpresa,
+        fechaDesde,
+        fechaHasta,
+      );
+  }
+
   @Post('')
   async agregarEmpresas(
     @Body() nuevaEmpresa: Empresa,
@@ -29,6 +42,11 @@ export class EmpresaController {
     @Param('codigoEmpresa') codigoEmpresa: string,
   ): Promise<Empresa> {
     return await this.empresaService.actualizarAcciones(codigoEmpresa);
+  }
+
+  @Put('/cotizaciones')
+  async actualizarCotizaciones() {
+    await this.empresaService.actualizarCotizaciones();
   }
 
   @Delete('/:codigoEmpresa')

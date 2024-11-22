@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Empresa } from './entities/empresa.entity';
 import { Repository } from 'typeorm';
+import axios from 'axios';
+import { Cotizacion } from './entities/cotizacion.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -11,7 +13,9 @@ export class EmpresaService {
 
   constructor(private readonly httpService: HttpService,
     @InjectRepository(Empresa)
-    private readonly empresaRepository: Repository<Empresa>
+    private readonly empresaRepository: Repository<Empresa>,
+    @InjectRepository(Cotizacion)
+    private readonly cotizacionRepository: Repository<Cotizacion>
   ) { }
 
   async getEmpresas(): Promise<Empresa[]> {
@@ -94,6 +98,75 @@ export class EmpresaService {
       );
     } else {
       return await this.empresaRepository.delete(empresa);
+    }
+  }
+
+  async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string,) {
+    try {
+      const url = `${this.backendUrl}/empresas/${codigoEmpresa}/cotizaciones`;
+      const response = await axios.get(url, {
+        params: {
+          fechaDesde,
+          fechaHasta
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Error al obtener cotizaciones de empresa ${codigoEmpresa}`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+  }
+
+  async actualizarCotizaciones(): Promise<any> {
+    const empresas = await this.empresaRepository.find();
+
+    if (!empresas.length) {
+      throw new HttpException(
+        'No se encontraron empresas en la base de datos.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const fechaActual = new Date();
+    const fechaHasta = fechaActual.toISOString().slice(0, 16); // Formato AAAA-MM-DDTHH:mm
+    let fechaDesde: string = '';
+
+    for (const empresa of empresas) {
+      const ultimaCotizacion = await this.cotizacionRepository.findOne({
+        where: { empresa: { id: empresa.id } },
+        order: { fecha: 'DESC', hora: 'DESC' },
+      });
+
+      if (!ultimaCotizacion) {
+        fechaDesde = '2024-01-01T00:00';
+      } else {
+        fechaDesde = ultimaCotizacion
+          ? `${ultimaCotizacion.fecha}T${ultimaCotizacion.hora}`
+          : '2024-01-01T00:00';
+      }
+
+      try {
+        const url = `${this.backendUrl}/empresas/${empresa.codigoEmpresa}/cotizaciones`;
+        const response = await axios.get(url, {
+          params: { fechaDesde, fechaHasta },
+        });
+
+        const cotizaciones = response.data.map((cotizacion: any) => ({
+          fecha: cotizacion.fecha,
+          hora: cotizacion.hora,
+          cotizacion: parseFloat(cotizacion.cotization),
+          empresa,
+        }));
+
+        await this.cotizacionRepository.save(cotizaciones);
+      } catch (error) {
+        console.error(
+          `Error al actualizar cotizaciones para la empresa ${empresa.codigoEmpresa}: ${error.message}`,
+        );
+      }
     }
   }
 

@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Empresa } from './empresa.entity';
 
 @Entity('cotizaciones')
+@Unique(['fecha', 'hora', 'empresa'])
 export class Cotizacion {
   @PrimaryGeneratedColumn({
     type: 'bigint',
@@ -19,7 +20,6 @@ export class Cotizacion {
     name: 'hora',
     type: 'varchar',
     precision: 5,
-    unique: true,
   })
   public hora: string;
 
