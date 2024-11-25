@@ -6,6 +6,7 @@ import { Empresa } from './entities/empresa.entity';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { Cotizacion } from './entities/cotizacion.entity';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class EmpresaService {
@@ -143,9 +144,7 @@ export class EmpresaService {
       if (!ultimaCotizacion) {
         fechaDesde = '2024-01-01T00:00';
       } else {
-        fechaDesde = ultimaCotizacion
-          ? `${ultimaCotizacion.fecha}T${ultimaCotizacion.hora}`
-          : '2024-01-01T00:00';
+        fechaDesde = `${ultimaCotizacion.fecha}T${ultimaCotizacion.hora}`;
       }
 
       try {
@@ -154,20 +153,51 @@ export class EmpresaService {
           params: { fechaDesde, fechaHasta },
         });
 
-        const cotizaciones = response.data.map((cotizacion: any) => ({
+        const cotizaciones = response.data
+        .map((cotizacion: any) => ({
           fecha: cotizacion.fecha,
           hora: cotizacion.hora,
           cotizacion: parseFloat(cotizacion.cotization),
           empresa,
-        }));
+        }))
+        .filter((cotizacion: any) => {
+          const fecha = new Date(`${cotizacion.fecha}T${cotizacion.hora}`);
+          const diaSemana = fecha.getDay(); // 0 a 6 => domingo a sabado.
+          const hora = fecha.getHours();
 
-        await this.cotizacionRepository.save(cotizaciones);
+          return diaSemana >= 1 && diaSemana <= 5 && hora >= 9 && hora <= 15;
+        });
+
+        for (const cotizacion of cotizaciones) {
+          const existeCotizacion = await this.cotizacionRepository.findOne({
+            where: {
+              fecha: cotizacion.fecha,
+              hora: cotizacion.hora,
+              empresa: { id: empresa.id },
+            },
+          });
+
+          if (!existeCotizacion) {
+            await this.cotizacionRepository.save(cotizacion);
+          }
+        }
       } catch (error) {
         console.error(
           `Error al actualizar cotizaciones para la empresa ${empresa.codigoEmpresa}: ${error.message}`,
         );
       }
     }
+  }
+
+  async onModuleInit() {
+    console.log('Actualizando cotizaciones');
+    await this.actualizarCotizaciones();
+  }
+  
+  @Cron('5 6-12 * * 1-5') // a los 5 minutos de cada hora de 9 a 15 UTC0 de lunes a viernes
+  async actualizarCotizacionesHorario() {
+    console.log('Actualizacion horaria');
+    await this.actualizarCotizaciones();
   }
 
 }
