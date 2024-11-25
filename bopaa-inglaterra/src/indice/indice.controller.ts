@@ -1,4 +1,4 @@
 import { Controller } from '@nestjs/common';
 
-@Controller('indice')
+@Controller('indices')
 export class IndiceController { }

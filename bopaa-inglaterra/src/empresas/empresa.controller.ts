@@ -4,7 +4,7 @@ import { Empresa } from './entities/empresa.entity';
 
 @Controller('empresas')
 export class EmpresaController {
-  constructor(private readonly empresaService: EmpresaService) { }
+  constructor(private readonly empresaService: EmpresaService) {}
 
   @Get('')
   async getEmpresas() {
