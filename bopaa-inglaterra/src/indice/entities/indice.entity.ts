@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { Bolsa } from 'src/bolsa/entities/bolsa.entity';
 @Entity('indices')
+@Unique(['fecha', 'hora', 'bolsa'])
 export class Indice {
   @PrimaryGeneratedColumn({
     type: 'int',
@@ -18,7 +19,6 @@ export class Indice {
     name: 'hora',
     type: 'varchar',
     precision: 5,
-    unique: true,
   })
   public hora: string;
 
@@ -35,7 +35,7 @@ export class Indice {
     name: 'idBolsa',
     referencedColumnName: 'id'
   })
-  bolsa: Bolsa;
+  public bolsa: Bolsa;
 
   constructor() { };
 }
