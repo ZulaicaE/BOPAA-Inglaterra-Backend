@@ -102,7 +102,7 @@ export class EmpresaService {
     }
   }
 
-  async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string,) {
+  async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string,): Promise<any> {
     try {
       const url = `${this.backendUrl}/empresas/${codigoEmpresa}/cotizaciones`;
       const response = await axios.get(url, {
