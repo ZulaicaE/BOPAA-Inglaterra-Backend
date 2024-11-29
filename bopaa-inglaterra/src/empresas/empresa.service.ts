@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Empresa } from './entities/empresa.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import axios from 'axios';
 import { Cotizacion } from './entities/cotizacion.entity';
 import { Cron } from '@nestjs/schedule';
@@ -104,15 +104,27 @@ export class EmpresaService {
 
   async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string,): Promise<any> {
     try {
-      const url = `${this.backendUrl}/empresas/${codigoEmpresa}/cotizaciones`;
-      const response = await axios.get(url, {
-        params: {
-          fechaDesde,
-          fechaHasta
+      const empresa = await this.empresaRepository.findOne({ where: { codigoEmpresa } });
+      
+      if (!empresa) {
+        throw new HttpException(
+          `Empresa con código ${codigoEmpresa} no encontrada`,
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      const cotizaciones = await this.cotizacionRepository.find({
+        where: {
+          empresa: empresa,
+          fecha: Between(fechaDesde, fechaHasta),
+        },
+        order: {
+          fecha: 'ASC',
+          hora: 'ASC',
         },
       });
 
-      return response.data;
+      return cotizaciones;
     } catch (error) {
       throw new HttpException(
         `Error al obtener cotizaciones de empresa ${codigoEmpresa}`,
