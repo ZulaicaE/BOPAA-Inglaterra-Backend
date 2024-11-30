@@ -17,25 +17,6 @@ export class BolsaService {
       return await this.bolsaRepository.find();
     }
 
-    async getIndicesBolsa(codigoBolsa: string, fechaDesde: string, fechaHasta: string): Promise<any> {
-      try {
-        const url = `${this.backendUrl}/indices/${codigoBolsa}/cotizaciones`;
-        const response = await axios.get(url, {
-          params: {
-            fechaDesde,
-            fechaHasta
-          },
-        });
-
-        return response.data;
-      } catch(error) {
-        throw new HttpException(
-          `Error al obtener cotizaciones de empresa ${codigoBolsa}`,
-          HttpStatus.BAD_REQUEST
-        );
-      }
-    }
-
     async actualizarBolsas(): Promise<any> {
       try {
         const url = `${this.backendUrl}/indices`;
