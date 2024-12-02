@@ -6,6 +6,7 @@ import { EmpresaModule } from './empresas/empresa.module';
 import { ConfigModule } from '@nestjs/config';
 import { IndiceModule } from './indice/indice.module';
 import { BolsaModule } from './bolsa/bolsa.module';
+import { UpdateModule } from './common/update.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { BolsaModule } from './bolsa/bolsa.module';
     BolsaModule,
     EmpresaModule,
     IndiceModule,
+    UpdateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
