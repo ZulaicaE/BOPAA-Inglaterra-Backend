@@ -6,7 +6,6 @@ import { Empresa } from './entities/empresa.entity';
 import { Between, Repository } from 'typeorm';
 import axios from 'axios';
 import { Cotizacion } from './entities/cotizacion.entity';
-import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class EmpresaService {
@@ -200,16 +199,4 @@ export class EmpresaService {
       }
     }
   }
-
-  async onModuleInit() {
-    console.log('Actualizando cotizaciones');
-    await this.actualizarCotizaciones();
-  }
-  
-  @Cron('5 6-12 * * 1-5') // a los 5 minutos de cada hora de 9 a 15 UTC0 de lunes a viernes
-  async actualizarCotizacionesHorario() {
-    console.log('Actualizacion horaria');
-    await this.actualizarCotizaciones();
-  }
-
 }
