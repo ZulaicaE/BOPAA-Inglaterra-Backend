@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Empresa } from './entities/empresa.entity';
-import { Between, Repository } from 'typeorm';
+import { Between, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from 'typeorm';
 import axios from 'axios';
 import { Cotizacion } from './entities/cotizacion.entity';
 
@@ -101,28 +101,65 @@ export class EmpresaService {
     }
   }
 
-  async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string,): Promise<any> {
+  async getCotizacionesByFechas(codigoEmpresa: string, fechaDesde: string, fechaHasta: string): Promise<any> {
     try {
-      const empresa = await this.empresaRepository.findOne({ where: { codigoEmpresa } });
-      
+      const empresa = await this.empresaRepository.findOne({
+        where: { codigoEmpresa },
+      });
+  
       if (!empresa) {
         throw new HttpException(
           `Empresa con código ${codigoEmpresa} no encontrada`,
           HttpStatus.NOT_FOUND
         );
       }
-
-      const cotizaciones = await this.cotizacionRepository.find({
-        where: {
-          empresa: empresa,
-          fecha: Between(fechaDesde, fechaHasta),
-        },
-        order: {
-          fecha: 'ASC',
-          hora: 'ASC',
-        },
-      });
-
+  
+      const fechaInicio = fechaDesde.split('T')[0]; // Obtener solo la fecha (YYYY-MM-DD)
+      const horaInicio = fechaDesde.split('T')[1]; // Obtener solo la hora (HH:mm)
+      const fechaFin = fechaHasta.split('T')[0]; // Igual para fecha final
+      const horaFin = fechaHasta.split('T')[1];
+  
+      let cotizaciones;
+  
+      if (fechaInicio === fechaFin) {
+        cotizaciones = await this.cotizacionRepository.find({
+          where: [
+            {
+              empresa: empresa,
+              fecha: fechaInicio,
+              hora: Between(horaInicio, horaFin),
+            },
+          ],
+          order: {
+            fecha: 'ASC',
+            hora: 'ASC',
+          },
+        });
+      } else {
+        cotizaciones = await this.cotizacionRepository.find({
+          where: [
+            {
+              empresa: empresa,
+              fecha: fechaInicio,
+              hora: MoreThanOrEqual(horaInicio),
+            },
+            {
+              empresa: empresa,
+              fecha: fechaFin,
+              hora: LessThanOrEqual(horaFin),
+            },
+            {
+              empresa: empresa,
+              fecha: Between(fechaInicio, fechaFin),
+            },
+          ],
+          order: {
+            fecha: 'ASC',
+            hora: 'ASC',
+          },
+        });
+      }
+  
       return cotizaciones;
     } catch (error) {
       throw new HttpException(
@@ -131,7 +168,6 @@ export class EmpresaService {
       );
     }
   }
-
   async actualizarCotizaciones(): Promise<any> {
     const empresas = await this.empresaRepository.find();
 

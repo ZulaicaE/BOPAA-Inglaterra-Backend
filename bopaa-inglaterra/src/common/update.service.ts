@@ -12,6 +12,7 @@ export class UpdateService {
     private readonly indiceService: IndiceService,
   ) { }
 
+  
   async onModuleInit() {
     console.log('Actualizando Bolsas');
     await this.bolsaService.actualizarBolsas();

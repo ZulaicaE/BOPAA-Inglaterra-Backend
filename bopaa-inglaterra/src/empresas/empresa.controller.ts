@@ -4,7 +4,7 @@ import { Empresa } from './entities/empresa.entity';
 
 @Controller('empresas')
 export class EmpresaController {
-  constructor(private readonly empresaService: EmpresaService) {}
+  constructor(private readonly empresaService: EmpresaService) { }
 
   @Get('')
   async getEmpresas() {
@@ -23,11 +23,11 @@ export class EmpresaController {
     @Query('fechaDesde') fechaDesde: string,
     @Query('fechaHasta') fechaHasta: string,
   ): Promise<any> {
-      return await this.empresaService.getCotizacionesByFechas(
-        codigoEmpresa,
-        fechaDesde,
-        fechaHasta,
-      );
+    return await this.empresaService.getCotizacionesByFechas(
+      codigoEmpresa,
+      fechaDesde,
+      fechaHasta,
+    );
   }
 
   @Post('')
