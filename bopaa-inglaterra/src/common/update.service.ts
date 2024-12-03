@@ -20,6 +20,9 @@ export class UpdateService {
     await this.empresaService.actualizarCotizaciones();
     console.log('Actualizando Indices');
     await this.indiceService.actualizarIndicesBursatiles();
+    console.log('Posteando Indices');
+    const codigoBolsa: string = 'LSE';
+    await this.indiceService.postearCotizaciones(codigoBolsa);
   }
 
   @Cron('5 6-12 * * 1-5') // a los 5 minutos de cada hora de 9 a 15 UTC0 de lunes a viernes.
