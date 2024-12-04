@@ -35,9 +35,10 @@ export class Empresa {
   })
   public bolsa: Bolsa;
 
-  constructor(codigoEmpresa: string, nombreEmpresa: string, bolsa: Bolsa) {
+  constructor(codigoEmpresa: string, nombreEmpresa: string, acciones: number, bolsa: Bolsa) {
     this.codigoEmpresa = codigoEmpresa;
     this.nombreEmpresa = nombreEmpresa;
+    this.acciones = acciones;
     this.bolsa = bolsa;
   }
 }

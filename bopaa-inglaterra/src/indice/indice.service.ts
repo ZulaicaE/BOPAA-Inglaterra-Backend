@@ -4,7 +4,9 @@ import { Repository, In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Empresa } from 'src/empresas/entities/empresa.entity';
 import { Cotizacion } from 'src/empresas/entities/cotizacion.entity';
+import { BolsaService } from 'src/bolsa/bolsa.service';
 import axios from 'axios';
+
 
 @Injectable()
 
@@ -18,6 +20,8 @@ export class IndiceService {
     private readonly empresaRepository: Repository<Empresa>,
     @InjectRepository(Cotizacion)
     private readonly cotizacionRepository: Repository<Cotizacion>,
+
+    private readonly bolsaService: BolsaService,
   ) { }
 
   async postearBolsar(body: { code: string, name: string }): Promise<any> {
@@ -53,10 +57,12 @@ export class IndiceService {
     }
   }
 
-  async actualizarIndicesBursatiles(): Promise<void> {
-    // Obtener empresas relacionadas con la bolsa LSE
+  async actualizarIndicesBursatiles(): Promise<void> {  // Obtenemos las empresas relacionadas con la bolsa LSE
+
+    const miBolsa = await this.bolsaService.getBolsaByCodigo('LSE');
+    
     const empresas = await this.empresaRepository.find({
-      where: { bolsa: { id: 1 } }, // bolsa con id 1 LSE
+      where: { bolsa: { id: miBolsa.id } }, // bolsa con id LSE
     });
 
     if (!empresas.length) {
@@ -69,12 +75,12 @@ export class IndiceService {
     const ultimoIndice = await this.indiceRepository
       .createQueryBuilder('indice')
       .select(['indice.fecha AS fecha', 'indice.hora AS hora'])
-      .where('indice.idBolsa = :bolsa', { bolsa: 1 })
+      .where('indice.idBolsa = :bolsa', { bolsa: miBolsa.id })
       .orderBy('indice.fecha', 'DESC')
       .addOrderBy('indice.hora', 'DESC')
       .getRawOne();
 
-    // Obtener fechas únicas de las cotizaciones
+    // Obtenemos las fechas únicas de las cotizaciones
     const fechasUnicas = await this.cotizacionRepository
       .createQueryBuilder('cotizacion')
       .select(['cotizacion.fecha AS fecha', 'cotizacion.hora AS hora'])
@@ -95,11 +101,10 @@ export class IndiceService {
 
     console.log('Fechas únicas posteriores a la última registrada:', fechasUnicas);
 
-    // Procesar cada fecha única
-    for (const { fecha, hora } of fechasUnicas) {
+    
+    for (const { fecha, hora } of fechasUnicas) { // Procesamos cada fecha única
       console.log(`Procesando fecha: ${fecha}, hora: ${hora}`);
 
-      // Obtener todas las cotizaciones para la fecha y hora específicas
       const cotizaciones = await this.cotizacionRepository.find({
         where: {
           fecha,
@@ -113,13 +118,10 @@ export class IndiceService {
         continue;
       }
 
-      // Calcular el promedio de las cotizaciones
       const sumaCotizaciones = cotizaciones.reduce(
         (suma, cotizacion) => suma + Number(cotizacion.cotizacion),
         0,
       );
-      console.log('SUMA TOTAL:', sumaCotizaciones);
-      console.log('cantidad empresas:', empresas.length)
       const promedioCotizacion = sumaCotizaciones / empresas.length;
 
       console.log(
@@ -128,22 +130,21 @@ export class IndiceService {
         )}`,
       );
 
-      // Crear o actualizar el índice
-      const indice = this.indiceRepository.create({
+      const indice = this.indiceRepository.create({ // Crear o actualizar el índice
         fecha,
         hora,
         indiceBursatil: promedioCotizacion,
-        bolsa: { id: 1 }, // Bolsa LSE
+        bolsa: { id: miBolsa.id }, // Bolsa LSE
       });
       await this.indiceRepository.save(indice);
     }
-
-    console.log('Actualización de índices bursatiles completada.');
   }
 
   async postearCotizaciones(codigoBolsa: string): Promise<any> {
 
     const url = `${this.backendUrl}/indices/cotizaciones`;
+
+    const miBolsa = await this.bolsaService.getBolsaByCodigo('LSE');
 
     const fechaDesde: string = '2024-01-01T00:00';
     const fechaActual = new Date();
@@ -167,7 +168,7 @@ export class IndiceService {
   
       const indicesLocales = await this.indiceRepository
         .createQueryBuilder('indice')
-        .where('indice.idbolsa = :bolsa', { bolsa: 1 }) // Bolsa LSE
+        .where('indice.idbolsa = :bolsa', { bolsa: miBolsa.id }) // Bolsa LSE
         .andWhere(
           '(indice.fecha > :fecha OR (indice.fecha = :fecha AND indice.hora > :hora))',
           { fecha: ultimaFecha, hora: ultimaHora },

@@ -30,11 +30,10 @@ export class EmpresaController {
     );
   }
 
-  @Post('')
+  @Post('/:codigoEmpresa')
   async agregarEmpresas(
-    @Body() nuevaEmpresa: Empresa,
-  ): Promise<Empresa> {
-    return await this.empresaService.agregarEmpresa(nuevaEmpresa);
+    @Param('codigoEmpresa') codigoEmpresa: string) {
+    return await this.empresaService.agregarEmpresa(codigoEmpresa);
   }
 
   @Put('/:codigoEmpresa/acciones')
