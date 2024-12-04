@@ -5,14 +5,13 @@ services:
       context: . # El contexto es el directorio actual, asumiendo que el Dockerfile está en el mismo lugar
       dockerfile: Dockerfile # Aquí se construye la imagen desde tu Dockerfile
     ports:
-      - "8000:3000" # Exponer el puerto de tu aplicación, puedes cambiarlo si es necesario
+      - "8080:3000" # Exponer el puerto de tu aplicación, puedes cambiarlo si es necesario
     environment:
       - NODE_ENV=development # O production, depende de tu configuración
       - MYSQL_HOST=mysql
       - MYSQL_USER=root
       - MYSQL_PASSWORD=root
       - MYSQL_DB=cotizaciones
-      - GEMPRESA_RUN_ENV=MIDOCKER
     depends_on:
       - mysql # Para asegurarse de que las bases de datos se inicien antes que la app
     networks:
