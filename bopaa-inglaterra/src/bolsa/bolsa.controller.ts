@@ -10,6 +10,12 @@ export class BolsaController {
     return await this.bolsaService.getBolsas();
   }
 
+  @Get('/:codigoBolsa/details')
+  async getBolsaByCodigo(
+  @Param(('codigoBolsa')) codigoBolsa: string) {
+      return await this.bolsaService.getBolsaByCodigo(codigoBolsa);
+  }
+
   @Put('/actualizar')
   async actualizarBolsas() {
     return await this.bolsaService.actualizarBolsas();

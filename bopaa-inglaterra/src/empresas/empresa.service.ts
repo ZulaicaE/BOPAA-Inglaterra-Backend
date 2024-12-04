@@ -3,9 +3,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Empresa } from './entities/empresa.entity';
-import { Between, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from 'typeorm';
-import axios from 'axios';
+import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Cotizacion } from './entities/cotizacion.entity';
+import { BolsaService } from 'src/bolsa/bolsa.service';
+import axios from 'axios';
+
 
 @Injectable()
 export class EmpresaService {
@@ -15,7 +17,8 @@ export class EmpresaService {
     @InjectRepository(Empresa)
     private readonly empresaRepository: Repository<Empresa>,
     @InjectRepository(Cotizacion)
-    private readonly cotizacionRepository: Repository<Cotizacion>
+    private readonly cotizacionRepository: Repository<Cotizacion>,
+    private readonly bolsaService: BolsaService,
   ) { }
 
   async getEmpresas(): Promise<Empresa[]> {
@@ -37,10 +40,34 @@ export class EmpresaService {
     }
   }
 
-  async agregarEmpresa(nuevaEmpresa: Empresa): Promise<Empresa> {
+  async agregarEmpresa(codigoEmpresa: string): Promise<Empresa | string> {
     try {
-      const empresa = this.empresaRepository.create(nuevaEmpresa);
-      return await this.empresaRepository.save(empresa);
+
+      const miBolsa = await this.bolsaService.getBolsaByCodigo('LSE');
+      const url = `${this.backendUrl}/empresas/${codigoEmpresa}/details`
+
+      const empresaExistente = await this.empresaRepository.findOne({
+        where: { codigoEmpresa: codigoEmpresa },
+      });
+
+      if (empresaExistente) {
+        return 'La empresa ya existe en la bolsa';
+      }
+
+      const empresa = await axios.get(url, {
+        params: {
+          codigoEmpresa,
+        },
+      });
+
+      const empresaFormatted = new Empresa(
+        empresa.data.codempresa,
+        empresa.data.empresaNombre,
+        empresa.data.cantidadAcciones,
+        miBolsa,
+      );
+
+      return await this.empresaRepository.save(empresaFormatted);
     } catch (error) {
       throw new HttpException(
         `Error al agregar la empresa: ${error.message}`,
